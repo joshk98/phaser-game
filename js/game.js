@@ -4,16 +4,25 @@ class Main {
     this.load.image('wallV', './assets/wallVertical.png');
     this.load.image('wallH', './assets/wallHorizontal.png');
     this.load.image('coin', './assets/coin.png');
+    this.load.image('enemy', 'assets/enemy.png');
   }
 
   create() {
     this.player = this.physics.add.sprite(250, 170, 'player');
+    this.player.body.gravity.y = 500;
+
     this.coin = this.physics.add.sprite(60, 130, 'coin');
+    
+    this.enemies = this.physics.add.group();
+    this.time.addEvent({
+      delay: 2200,
+      callback: () => this.addEnemy(),
+      loop: true,
+    })
+
     this.scoreLabel = this.add.text(30, 25, 'Score: 0',
     { font: '18px Arial', fill: '#fff' });
-    this.score = 0
-
-    this.player.body.gravity.y = 500;
+    this.score = 0;
 
     this.arrow = this.input.keyboard.createCursorKeys();
 
@@ -22,6 +31,8 @@ class Main {
 
   update() {
     this.physics.collide(this.player, this.walls);
+    this.physics.collide(this.enemies, this.walls);
+
     this.movePlayer();
 
     if (this.player.y > 340 || this.player.y < 0) {
@@ -33,6 +44,9 @@ class Main {
       this.updateCoinPosition();
     }
 
+    if (this.physics.overlap(this.player, this.enemies)) {
+      this.playerDie();
+    }
   }
 
   movePlayer() {
@@ -90,6 +104,19 @@ class Main {
     let newPosition = Phaser.Math.RND.pick(positions);
 
     this.coin.setPosition(newPosition.x, newPosition.y);
+  }
+
+  addEnemy() {
+    let enemy = this.enemies.create(250, -10, 'enemy');
+
+    enemy.body.gravity.y = 500;
+    enemy.body.velocity.x = Phaser.Math.RND.pick([-100, 100]);
+    enemy.body.bounce.x = 1;
+
+    this.time.addEvent({
+      delay: 10000,
+      callback: () => enemy.destroy(),
+    })
   }
 }
 
